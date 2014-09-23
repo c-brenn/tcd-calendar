@@ -1,7 +1,7 @@
 TCD Calendar Importer
 ============
 
-Quickly pull your timetable in from my.tcd.ie (as quick as my.tcd.ie will load a page, that is.)
+Quickly copy your timetable from my.tcd.ie to your Google calandar.
 
 ## Installation
 
