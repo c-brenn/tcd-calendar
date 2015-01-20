@@ -42,21 +42,21 @@ class CalendarImporter:
     br.open(br.click_link(text="My Timetable"))
     br.open(br.click_link(text="View My Own Student Timetable"))
 
-
     soup = BeautifulSoup(br.response().read())
-    text = br.response().read()
-    json_data = json.loads(text.split('var eventdata = ')[1].split(';    sits_timetable_widget')[0])
+    appointment_soup = soup.find_all("td", "fullBorder")
 
-    for appointment in json_data:
+    for appointment in appointment_soup:
+      appointment_text = appointment.get_text()
+      tooltip_text = appointment['onmouseover']
 
       appointment = {
-        "size": int(self.__parseAppointmentText(appointment['info'], "Size:")),
-        "group": self.__parseAppointmentText(appointment['info'], "Group:"),
-        "activity": self.__parseAppointmentText(appointment['info'], "Activity:"),
-        "room": self.__parseAppointmentText(appointment['info'], "Room:", "</a>", index=0).split('target=\"_blank\">')[1],
-        "module": self.__parseAppointmentText(appointment['ttip'], "Module:", "\n"),
-        "day": self.__parseAppointmentText(appointment['ttip'], "Date:", "\n"),
-        "time": self.__parseAppointmentText(appointment['ttip'], "Time:")
+        "size": int(self.__parseAppointmentText(appointment_text, "Size:")),
+        "group": self.__parseAppointmentText(appointment_text, "Group:"),
+        "activity": self.__parseAppointmentText(appointment_text, "Activity:"),
+        "room": self.__parseAppointmentText(appointment_text, "Room:", index=1),
+        "module": self.__parseAppointmentText(tooltip_text, "Module:", "<br/>"),
+        "day": self.__parseAppointmentText(tooltip_text, "Date:", "<br/>"),
+        "time": self.__parseAppointmentText(tooltip_text, "Time:", "<br/>")
       }
 
       self.appointments.append(appointment)
@@ -99,7 +99,7 @@ class CalendarImporter:
 
       requests.post(self.__GOOGLE_CALENDAR_EVENT_ENDPOINT, data=json.dumps(event), headers=request_headers, params=request_params)
 
-    print "kthxbai"
+    print "kthxbomb"
 
   def __getGoogleAuthToken(self):
     req = requests.post(self.__GOOGLE_LOGIN_ENDPOINT, {
@@ -111,7 +111,7 @@ class CalendarImporter:
 
     self.__GOOGLE_AUTH_TOKEN = req.text.split("Auth=")[1].replace("\n", "")
 
-  def __parseAppointmentText(self, text, key, needle="<br/>", index=0):
+  def __parseAppointmentText(self, text, key, needle="\n", index=0):
     return text.split(key)[1].split(needle)[index].strip() # (this should be less ew)
 
   def __createTimeDelimiter(self, time, day):
